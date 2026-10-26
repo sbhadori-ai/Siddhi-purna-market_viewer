@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poorna Market 360° VR Viewer</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Three.js for 360 Viewer Simulation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316', // Orange-500
+                            600: '#ea580c',
+                            900: '#7c2d12',
+                        },
+                        surface: {
+                            900: '#0f172a', // Slate-900
+                            800: '#1e293b',
+                            700: '#334155',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            overflow-x: hidden;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #f97316; 
+        }
+        #viewer-container {
+            cursor: grab;
+        }
+        #viewer-container:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="antialiased font-sans selection:bg-brand-500 selection:text-white">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 top-0 left-0 bg-surface-900/80 backdrop-blur-md border-b border-surface-800 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-20">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center gap-2 cursor-pointer">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-500 to-orange-400 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/30">
+                        <i class="ph ph-bounding-box text-white text-2xl"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight">Poorna<span class="text-brand-500">360</span></span>
+                </div>
+
+                <!-- Desktop Menu -->
+                <div class="hidden md:flex space-x-8 items-center">
+                    <a href="#home" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Home</a>
+                    <a href="#walkthrough" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Walkthrough</a>
+                    <a href="#gallery" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Design Gallery</a>
+                    <a href="#features" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Features</a>
+                </div>
+
+                <!-- CTA Button -->
+                <div class="hidden md:flex">
+                    <button class="bg-brand-500 hover:bg-brand-600 text-white px-6 py-2.5 rounded-full font-medium transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(249,115,22,0.3)] flex items-center gap-2">
+                        <i class="ph ph-headset-vr text-lg"></i>
+                        Enter VR Mode
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="pt-32 pb-16 md:pt-40 md:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            <!-- Left Text Content -->
+            <div class="space-y-8 z-10">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-500 text-sm font-medium">
+                    <span class="relative flex h-2 w-2">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+                    </span>
+                    Enscape to WebXR Integrated
+                </div>
+                <h1 class="text-5xl md:text-6xl font-extrabold leading-tight tracking-tight">
+                    Immersive <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-500 to-orange-300">360° Vision</span> of Poorna Market.
+                </h1>
+                <p class="text-lg text-gray-400 leading-relaxed max-w-lg">
+                    Step inside the architectural reimagining of Poorna Market. Our high-fidelity, web-based viewer brings Enscape renders directly to your Meta Quest or desktop browser without any app installations.
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <button class="bg-white text-surface-900 hover:bg-gray-100 px-8 py-3.5 rounded-full font-semibold transition-colors flex items-center gap-2">
+                        Start Walkthrough
+                        <i class="ph ph-arrow-right"></i>
+                    </button>
+                    <button class="bg-surface-800 border border-surface-700 hover:border-brand-500 text-white px-8 py-3.5 rounded-full font-medium transition-colors flex items-center gap-2 group">
+                        <i class="ph ph-images group-hover:text-brand-500 transition-colors"></i>
+                        View Gallery
+                    </button>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-3 gap-6 pt-8 border-t border-surface-800">
+                    <div>
+                        <div class="text-3xl font-bold text-white mb-1">4K</div>
+                        <div class="text-sm text-gray-400">Resolution</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-white mb-1">12</div>
+                        <div class="text-sm text-gray-400">Panoramic Nodes</div>
+                    </div>
+                    <div>
+                        <div class="text-3xl font-bold text-white mb-1">60</div>
+                        <div class="text-sm text-gray-400">FPS VR Ready</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right 3D Viewer Container -->
+            <div class="relative w-full aspect-square md:aspect-[4/3] lg:aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-brand-500/20 border border-surface-700 group">
+                <!-- Overlay UI for viewer -->
+                <div class="absolute top-4 left-4 z-10 flex gap-2">
+                    <div class="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-medium text-white flex items-center gap-1 border border-white/10">
+                        <i class="ph ph-arrows-out-cardinal text-brand-500"></i> Interactive Demo
+                    </div>
+                </div>
+                <div class="absolute bottom-4 right-4 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button class="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center hover:bg-brand-500 transition-colors border border-white/10" title="Fullscreen">
+                        <i class="ph ph-corners-out text-white"></i>
+                    </button>
+                </div>
+                <div class="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.8)] z-0"></div>
+                
+                <!-- Three.js Canvas mounts here -->
+                <div id="viewer-container" class="w-full h-full bg-surface-900"></div>
+                
+                <!-- Instructions -->
+                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 bg-black/60 backdrop-blur px-4 py-2 rounded-full pointer-events-none text-sm text-gray-300 flex items-center gap-2">
+                    <i class="ph ph-hand-swipe-left text-lg"></i> Click & Drag to look around
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-20 bg-surface-800/50 border-y border-surface-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold mb-4">Engineered for Architecture</h2>
+                <p class="text-gray-400 max-w-2xl mx-auto">A seamless bridge between your Enscape renders and immersive WebXR client presentations.</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Feature 1 -->
+                <div class="bg-surface-900 p-8 rounded-2xl border border-surface-700 hover:border-brand-500/50 transition-colors group">
+                    <div class="w-14 h-14 bg-brand-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph ph-goggles text-3xl text-brand-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Native Meta Quest Support</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Built on WebXR. Simply open the URL in the headset browser and instantly step into the 360 space. No side-loading required.</p>
+                </div>
+                <!-- Feature 2 -->
+                <div class="bg-surface-900 p-8 rounded-2xl border border-surface-700 hover:border-brand-500/50 transition-colors group">
+                    <div class="w-14 h-14 bg-brand-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph ph-map-pin text-3xl text-brand-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Hotspot Navigation</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Spatially mapped interactive hotspots allow users to intuitively "walk" from the market alley to the main hub using their controllers.</p>
+                </div>
+                <!-- Feature 3 -->
+                <div class="bg-surface-900 p-8 rounded-2xl border border-surface-700 hover:border-brand-500/50 transition-colors group">
+                    <div class="w-14 h-14 bg-brand-500/10 rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                        <i class="ph ph-faders text-3xl text-brand-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-3">Interactive Design Gallery</h3>
+                    <p class="text-gray-400 text-sm leading-relaxed">Integrated 2D UI panels within the VR environment. Users can read architectural concepts and select specific viewpoints from a floating gallery menu.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-surface-900 pt-16 pb-8 border-t border-surface-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center text-center">
+            <div class="w-12 h-12 bg-gradient-to-br from-brand-500 to-orange-400 rounded-xl flex items-center justify-center mb-6">
+                <i class="ph ph-bounding-box text-white text-2xl"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2">Poorna Market Project</h2>
+            <p class="text-gray-500 mb-8 max-w-md">An architectural thesis project integrating Enscape rendering with accessible WebXR technologies.</p>
+            
+            <div class="flex gap-4 mb-8">
+                <a href="#" class="w-10 h-10 rounded-full bg-surface-800 flex items-center justify-center text-gray-400 hover:bg-brand-500 hover:text-white transition-colors">
+                    <i class="ph ph-github-logo text-xl"></i>
+                </a>
+                <a href="#" class="w-10 h-10 rounded-full bg-surface-800 flex items-center justify-center text-gray-400 hover:bg-brand-500 hover:text-white transition-colors">
+                    <i class="ph ph-link text-xl"></i>
+                </a>
+            </div>
+            
+            <p class="text-sm text-surface-700 pt-8 border-t border-surface-800 w-full">
+                &copy; 2026 Architecture Portfolio. Generated for visualization purposes.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Three.js 360 Viewer Logic -->
+    <script>
+        window.onload = function() {
+            init360Viewer();
+        };
+
+        function init360Viewer() {
+            const container = document.getElementById('viewer-container');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // Scene setup
+            const scene = new THREE.Scene();
+            
+            // Camera setup
+            const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            camera.position.set(0, 0, 0.1); // Slightly offset so we can look around from the center
+
+            // Renderer setup
+            const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // -------------------------------------------------------------
+            // Create a Procedural Canvas Texture to simulate a 360 render
+            // (Since we cannot load external Enscape images here)
+            // -------------------------------------------------------------
+            const canvas = document.createElement('canvas');
+            canvas.width = 2048;
+            canvas.height = 1024;
+            const context = canvas.getContext('2d');
+
+            // 1. Draw Background Gradient
+            const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, '#020617'); // Dark slate ceiling
+            gradient.addColorStop(0.5, '#1e293b'); // Horizon
+            gradient.addColorStop(1, '#0f172a'); // Floor
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Draw Architectural Grid Lines to simulate depth
+            context.strokeStyle = 'rgba(249, 115, 22, 0.2)'; // Faint orange grid
+            context.lineWidth = 2;
+            const gridSize = 64;
+            for(let i=0; i<=canvas.width; i+=gridSize) {
+                context.beginPath(); context.moveTo(i, 0); context.lineTo(i, canvas.height); context.stroke();
+            }
+            for(let i=0; i<=canvas.height; i+=gridSize) {
+                context.beginPath(); context.moveTo(0, i); context.lineTo(canvas.width, i); context.stroke();
+            }
+
+            // 3. Draw Horizon Line
+            context.strokeStyle = 'rgba(255,255,255,0.3)';
+            context.lineWidth = 4;
+            context.beginPath(); context.moveTo(0, canvas.height/2); context.lineTo(canvas.width, canvas.height/2); context.stroke();
+
+            // 4. Draw Text elements mimicking hotspots and locations
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            
+            // Main front title
+            context.fillStyle = '#f97316';
+            context.font = 'bold 90px Inter, sans-serif';
+            context.fillText('POORNA MARKET', canvas.width/2, canvas.height/2 - 80);
+            
+            context.fillStyle = '#ffffff';
+            context.font = '40px Inter, sans-serif';
+            context.fillText('Main Atrium Virtual View', canvas.width/2, canvas.height/2 + 20);
+            
+            // Draw a mock hotspot
+            context.fillStyle = 'rgba(249, 115, 22, 0.8)';
+            context.beginPath();
+            context.arc(canvas.width/2, canvas.height/2 + 150, 20, 0, Math.PI * 2);
+            context.fill();
+            context.strokeStyle = '#ffffff';
+            context.lineWidth = 5;
+            context.stroke();
+
+            // Left text (Gallery)
+            context.fillStyle = 'rgba(255,255,255,0.5)';
+            context.font = 'bold 60px Inter, sans-serif';
+            context.fillText('< DESIGN GALLERY', canvas.width/4, canvas.height/2);
+
+            // Right text (Walkthrough)
+            context.fillText('MARKET ALLEY >', canvas.width * 0.75, canvas.height/2);
+
+            // Create Texture from Canvas
+            const texture = new THREE.CanvasTexture(canvas);
+            
+            // Sphere Geometry (inverted so we are inside it)
+            const geometry = new THREE.SphereGeometry(500, 60, 40);
+            // Invert the geometry on the x-axis so that all of the faces point inward
+            geometry.scale(-1, 1, 1);
+
+            const material = new THREE.MeshBasicMaterial({
+                map: texture
+            });
+
+            const sphere = new THREE.Mesh(geometry, material);
+            scene.add(sphere);
+
+            // -------------------------------------------------------------
+            // Interaction Logic (Mouse/Touch dragging)
+            // -------------------------------------------------------------
+            let isUserInteracting = false;
+            let onPointerDownPointerX = 0;
+            let onPointerDownPointerY = 0;
+            let lon = 0; // Longitude (starts looking at center of canvas)
+            let onPointerDownLon = 0;
+            let lat = 0; // Latitude
+            let onPointerDownLat = 0;
+            let phi = 0;
+            let theta = 0;
+
+            container.addEventListener('mousedown', onPointerDown, false);
+            container.addEventListener('mousemove', onPointerMove, false);
+            container.addEventListener('mouseup', onPointerUp, false);
+            container.addEventListener('mouseleave', onPointerUp, false);
+
+            // Touch support
+            container.addEventListener('touchstart', (e) => {
+                if(e.touches.length > 0) {
+                    e.clientX = e.touches[0].clientX;
+                    e.clientY = e.touches[0].clientY;
+                    onPointerDown(e);
+                }
+            }, {passive: false});
+            container.addEventListener('touchmove', (e) => {
+                if(e.touches.length > 0) {
+                    e.preventDefault(); // Prevent scrolling while interacting
+                    e.clientX = e.touches[0].clientX;
+                    e.clientY = e.touches[0].clientY;
+                    onPointerMove(e);
+                }
+            }, {passive: false});
+            container.addEventListener('touchend', onPointerUp, false);
+
+
+            function onPointerDown(event) {
+                isUserInteracting = true;
+                onPointerDownPointerX = event.clientX;
+                onPointerDownPointerY = event.clientY;
+                onPointerDownLon = lon;
+                onPointerDownLat = lat;
+            }
+
+            function onPointerMove(event) {
+                if (isUserInteracting === true) {
+                    // Calculate rotation speed based on drag distance
+                    lon = (onPointerDownPointerX - event.clientX) * 0.15 + onPointerDownLon;
+                    lat = (event.clientY - onPointerDownPointerY) * 0.15 + onPointerDownLat;
+                }
+            }
+
+            function onPointerUp() {
+                isUserInteracting = false;
+            }
+
+            // Handle Window Resize
+            window.addEventListener('resize', onWindowResize, false);
+
+            function onWindowResize() {
+                const newWidth = container.clientWidth;
+                const newHeight = container.clientHeight;
+                camera.aspect = newWidth / newHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(newWidth, newHeight);
+            }
+
+            // -------------------------------------------------------------
+            // Animation Loop
+            // -------------------------------------------------------------
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                // Add an auto-rotation effect if user is not interacting
+                if(!isUserInteracting) {
+                    lon += 0.05;
+                }
+
+                // Clamp latitude to prevent looking completely upside down
+                lat = Math.max(-85, Math.min(85, lat));
+
+                // Convert spherical coordinates to Cartesian for the camera lookAt target
+                phi = THREE.MathUtils.degToRad(90 - lat);
+                theta = THREE.MathUtils.degToRad(lon);
+
+                const target = new THREE.Vector3();
+                target.x = 500 * Math.sin(phi) * Math.cos(theta);
+                target.y = 500 * Math.cos(phi);
+                target.z = 500 * Math.sin(phi) * Math.sin(theta);
+
+                camera.lookAt(target);
+
+                renderer.render(scene, camera);
+            }
+
+            animate(); // Start the loop
+        }
+    </script>
+</body>
+</html>
