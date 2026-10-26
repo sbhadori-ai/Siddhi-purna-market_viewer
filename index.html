@@ -101,7 +101,7 @@
                 <div class="hidden md:flex space-x-8 items-center">
                     <a href="#home" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Home</a>
                     <a href="#walkthrough" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Walkthrough</a>
-                    <a href="#gallery" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Design Gallery</a>
+                    <a href="#" onclick="openGallery(); return false;" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Design Gallery</a>
                     <a href="#features" class="text-gray-300 hover:text-white transition-colors text-sm font-medium">Features</a>
                 </div>
 
@@ -140,7 +140,7 @@
                         Start Walkthrough
                         <i class="ph ph-arrows-out"></i>
                     </button>
-                    <button class="bg-surface-800 border border-surface-700 hover:border-brand-500 text-white px-8 py-3.5 rounded-full font-medium transition-colors flex items-center gap-2 group">
+                    <button onclick="openGallery()" class="bg-surface-800 border border-surface-700 hover:border-brand-500 text-white px-8 py-3.5 rounded-full font-medium transition-colors flex items-center gap-2 group cursor-pointer">
                         <i class="ph ph-images group-hover:text-brand-500 transition-colors"></i>
                         View Gallery
                     </button>
@@ -288,8 +288,141 @@
         </div>
     </footer>
 
+    <!-- Design Gallery Fullscreen Modal -->
+    <div id="gallery-modal" class="hidden fixed inset-0 z-[100] bg-black text-white flex-col transition-opacity duration-500 opacity-0">
+        <!-- Close Button -->
+        <button onclick="closeGallery()" class="absolute top-6 right-6 z-50 p-3 bg-black/50 hover:bg-brand-500 border border-white/20 backdrop-blur rounded-full transition-all cursor-pointer">
+            <i class="ph ph-x text-2xl"></i>
+        </button>
+        
+        <!-- Slider Container -->
+        <div class="relative w-full h-full flex items-center justify-center overflow-hidden bg-surface-900">
+            <!-- Main Image -->
+            <img id="gallery-main-img" src="" alt="Gallery Image" class="absolute w-full h-full object-cover transition-opacity duration-500" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+            <!-- Navigation Arrows -->
+            <button onclick="prevSlide()" class="absolute left-4 md:left-12 z-50 p-3 md:p-4 bg-black/40 hover:bg-brand-500 border border-white/10 backdrop-blur rounded-full transition-all cursor-pointer">
+                <i class="ph ph-caret-left text-2xl md:text-3xl"></i>
+            </button>
+            <button onclick="nextSlide()" class="absolute right-4 md:right-12 z-50 p-3 md:p-4 bg-black/40 hover:bg-brand-500 border border-white/10 backdrop-blur rounded-full transition-all cursor-pointer">
+                <i class="ph ph-caret-right text-2xl md:text-3xl"></i>
+            </button>
+
+            <!-- Info Panel (Bottom Center) -->
+            <div class="absolute bottom-8 md:bottom-12 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-3xl bg-black/60 backdrop-blur-xl p-6 md:p-8 rounded-2xl border border-white/10 text-center shadow-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 mb-4 rounded-full bg-brand-500/20 border border-brand-500/30 text-brand-500 text-xs font-bold uppercase tracking-wider">
+                    <span id="gallery-counter">1 / 10</span>
+                </div>
+                <h3 id="gallery-title" class="text-2xl md:text-3xl font-bold text-white mb-3 tracking-tight"></h3>
+                <p id="gallery-desc" class="text-gray-300 text-sm md:text-base leading-relaxed max-w-2xl mx-auto"></p>
+                
+                <!-- Slide Indicators (Dots) -->
+                <div class="flex justify-center gap-2 mt-6" id="gallery-indicators">
+                    <!-- Dots injected via JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Three.js 360 Viewer Logic -->
     <script>
+        // --- Gallery Logic ---
+        const galleryData = [
+            { src: "viewer1.jpg", title: "Manson Lakeside Integration", desc: "A view showcasing the harmonious integration of the market edges with the surrounding water bodies and pedestrian walkways." },
+            { src: "viewer2.jpg", title: "Rooftop Community Hub", desc: "The elevated recreational space featuring a pool and seating areas, designed to foster community engagement above the market bustle." },
+            { src: "viewer3.jpg", title: "Eco-Corridor Approach", desc: "The lush, green pedestrian approach to the market, emphasizing sustainability and natural shading in the architectural plan." },
+            { src: "https://placehold.co/1920x1080/1e293b/ffffff?text=Main+Facade", title: "Modernized Main Facade", desc: "The primary entrance highlighting parametric shading devices and local material palettes." },
+            { src: "https://placehold.co/1920x1080/0f172a/f97316?text=Central+Atrium", title: "Central Atrium Void", desc: "A massive central void allowing stack effect ventilation and flooding the interior market stalls with diffuse natural daylight." },
+            { src: "https://placehold.co/1920x1080/334155/ffffff?text=Vendor+Stalls", title: "Modular Vendor Stalls", desc: "Standardized yet customizable vendor units designed for maximum space efficiency and hygienic product display." },
+            { src: "https://placehold.co/1920x1080/1e293b/f97316?text=Night+Illumination", title: "Nighttime Illumination", desc: "Strategic lighting design ensuring safety, ambiance, and emphasizing the architectural skeleton after dark." },
+            { src: "https://placehold.co/1920x1080/0f172a/ffffff?text=Underground+Logistics", title: "Subterranean Logistics", desc: "The hidden loading bays and waste management systems, completely separated from pedestrian traffic flow." },
+            { src: "https://placehold.co/1920x1080/334155/f97316?text=Transit+Node", title: "Integrated Transit Node", desc: "Seamless connection to local bus routes and paratransit, making the market highly accessible." },
+            { src: "https://placehold.co/1920x1080/1e293b/ffffff?text=Public+Plaza", title: "Civic Public Plaza", desc: "The flexible outdoor space designed for weekend farmers' markets, cultural events, and informal gatherings." }
+        ];
+
+        let currentSlideIndex = 0;
+        const modal = document.getElementById('gallery-modal');
+        const mainImg = document.getElementById('gallery-main-img');
+        const titleEl = document.getElementById('gallery-title');
+        const descEl = document.getElementById('gallery-desc');
+        const counterEl = document.getElementById('gallery-counter');
+        const indicatorsContainer = document.getElementById('gallery-indicators');
+
+        function initGallery() {
+            indicatorsContainer.innerHTML = '';
+            galleryData.forEach((_, index) => {
+                const dot = document.createElement('button');
+                dot.className = `w-2 h-2 md:w-2.5 md:h-2.5 rounded-full transition-all duration-300 ${index === 0 ? 'bg-brand-500 w-6 md:w-8' : 'bg-white/30 hover:bg-white/60'}`;
+                dot.onclick = () => goToSlide(index);
+                indicatorsContainer.appendChild(dot);
+            });
+            updateGalleryUI();
+        }
+
+        function openGallery() {
+            modal.classList.remove('hidden');
+            // Slight delay for animation
+            setTimeout(() => {
+                modal.classList.add('flex');
+                modal.classList.remove('opacity-0');
+                modal.classList.add('opacity-100');
+            }, 10);
+            if(indicatorsContainer.children.length === 0) initGallery();
+        }
+
+        function closeGallery() {
+            modal.classList.remove('opacity-100');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 500);
+        }
+
+        function updateGalleryUI() {
+            const data = galleryData[currentSlideIndex];
+            
+            // Fade effect for image
+            mainImg.style.opacity = '0';
+            setTimeout(() => {
+                mainImg.src = data.src;
+                mainImg.style.opacity = '1';
+            }, 200);
+
+            titleEl.textContent = data.title;
+            descEl.textContent = data.desc;
+            counterEl.textContent = `${currentSlideIndex + 1} / ${galleryData.length}`;
+
+            // Update dots
+            Array.from(indicatorsContainer.children).forEach((dot, index) => {
+                if (index === currentSlideIndex) {
+                    dot.className = 'w-6 md:w-8 h-2 md:h-2.5 rounded-full bg-brand-500 transition-all duration-300';
+                } else {
+                    dot.className = 'w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-white/30 hover:bg-white/60 transition-all duration-300';
+                }
+            });
+        }
+
+        function nextSlide() {
+            currentSlideIndex = (currentSlideIndex + 1) % galleryData.length;
+            updateGalleryUI();
+        }
+
+        function prevSlide() {
+            currentSlideIndex = (currentSlideIndex - 1 + galleryData.length) % galleryData.length;
+            updateGalleryUI();
+        }
+
+        function goToSlide(index) {
+            currentSlideIndex = index;
+            updateGalleryUI();
+        }
+
+        // Initialize gallery dots on load
+        window.addEventListener('DOMContentLoaded', initGallery);
+
+
         function toggleFullscreen() {
             const wrapper = document.getElementById("viewer-wrapper");
             
