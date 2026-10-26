@@ -68,6 +68,19 @@
         #viewer-container:active {
             cursor: grabbing;
         }
+        
+        /* CSS Fallback for Fullscreen when Native API is blocked */
+        .pseudo-fullscreen {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-width: 100% !important;
+            z-index: 9999 !important;
+            border-radius: 0 !important;
+            border: none !important;
+        }
     </style>
 </head>
 <body class="antialiased font-sans selection:bg-brand-500 selection:text-white">
@@ -123,9 +136,9 @@
                     Step inside the architectural reimagining of Poorna Market. Our high-fidelity, web-based viewer brings Enscape renders directly to your Meta Quest or desktop browser without any app installations.
                 </p>
                 <div class="flex flex-wrap gap-4">
-                    <button class="bg-white text-surface-900 hover:bg-gray-100 px-8 py-3.5 rounded-full font-semibold transition-colors flex items-center gap-2">
+                    <button onclick="toggleFullscreen()" class="bg-white text-surface-900 hover:bg-gray-100 px-8 py-3.5 rounded-full font-semibold transition-colors flex items-center gap-2">
                         Start Walkthrough
-                        <i class="ph ph-arrow-right"></i>
+                        <i class="ph ph-arrows-out"></i>
                     </button>
                     <button class="bg-surface-800 border border-surface-700 hover:border-brand-500 text-white px-8 py-3.5 rounded-full font-medium transition-colors flex items-center gap-2 group">
                         <i class="ph ph-images group-hover:text-brand-500 transition-colors"></i>
@@ -151,18 +164,55 @@
             </div>
 
             <!-- Right 3D Viewer Container -->
-            <div class="relative w-full aspect-square md:aspect-[4/3] lg:aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-brand-500/20 border border-surface-700 group">
+            <div id="viewer-wrapper" class="relative w-full aspect-square md:aspect-[4/3] lg:aspect-square rounded-3xl overflow-hidden shadow-2xl shadow-brand-500/20 border border-surface-700 group transition-all duration-300 fullscreen:rounded-none fullscreen:border-none fullscreen:w-screen fullscreen:h-screen">
                 <!-- Overlay UI for viewer -->
                 <div class="absolute top-4 left-4 z-10 flex gap-2">
                     <div class="bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-medium text-white flex items-center gap-1 border border-white/10">
                         <i class="ph ph-arrows-out-cardinal text-brand-500"></i> Interactive Demo
                     </div>
-                </div>
-                <div class="absolute bottom-4 right-4 z-10 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button class="w-10 h-10 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center hover:bg-brand-500 transition-colors border border-white/10" title="Fullscreen">
-                        <i class="ph ph-corners-out text-white"></i>
+                    <button onclick="toggleFullscreen()" class="bg-black/50 hover:bg-brand-500 transition-colors backdrop-blur-md px-3 py-1.5 rounded-lg text-xs font-medium text-white flex items-center gap-1 border border-white/10 cursor-pointer">
+                        <i class="ph ph-corners-out"></i> Fullscreen
                     </button>
                 </div>
+
+                <!-- NEW: Info Panel (Top Right) -->
+                <div class="absolute top-4 right-4 z-10 w-56 md:w-64 bg-surface-900/80 backdrop-blur-md border border-surface-700 rounded-xl p-4 shadow-xl transition-all duration-300">
+                    <h3 class="text-white font-bold text-sm md:text-lg mb-1 uppercase" id="info-title">Main Atrium</h3>
+                    <p class="text-gray-400 text-xs leading-relaxed" id="info-desc">The central gathering space of Poorna Market, featuring natural ventilation and dynamic commercial stalls.</p>
+                </div>
+
+                <!-- NEW: Siteplan Navigation (Bottom Right) -->
+                <div class="absolute bottom-4 right-4 z-10 w-40 h-40 md:w-48 md:h-48 bg-surface-900/80 backdrop-blur-md border border-surface-700 rounded-xl p-2 shadow-xl flex flex-col">
+                    <div class="text-[10px] md:text-xs font-semibold text-gray-300 mb-2 px-1 flex justify-between items-center">
+                        <span>Site Plan Navigation</span>
+                        <button onclick="toggleFullscreen()" class="hover:text-white" title="Fullscreen"><i class="ph ph-corners-out"></i></button>
+                    </div>
+                    <div class="relative flex-1 bg-surface-800 rounded-lg border border-surface-700 overflow-hidden">
+                        <!-- SVG mock site plan -->
+                        <svg viewBox="0 0 100 100" class="w-full h-full opacity-50">
+                            <rect x="10" y="10" width="80" height="80" fill="none" stroke="#475569" stroke-width="2" rx="4"/>
+                            <rect x="20" y="20" width="60" height="25" fill="#334155" rx="2"/>
+                            <rect x="20" y="55" width="25" height="35" fill="#334155" rx="2"/>
+                            <rect x="55" y="55" width="25" height="35" fill="#334155" rx="2"/>
+                            <!-- Pathways -->
+                            <path d="M 45 45 L 55 45 L 55 55 L 45 55 Z" fill="#1e293b"/>
+                        </svg>
+                        
+                        <!-- Nav Nodes -->
+                        <button onclick="window.changeVRView('atrium')" id="btn-atrium" class="nav-node absolute top-[30%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-4 h-4 rounded-full bg-brand-500 border-2 border-white shadow-[0_0_10px_rgba(249,115,22,0.8)] z-20 group transition-all cursor-pointer">
+                            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-black text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap">Main Atrium</span>
+                        </button>
+                        
+                        <button onclick="window.changeVRView('alley')" id="btn-alley" class="nav-node absolute top-[70%] left-[30%] -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-surface-400 border-2 border-surface-200 hover:bg-brand-400 hover:border-white z-20 group transition-all cursor-pointer">
+                            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-black text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap">Market Alley</span>
+                        </button>
+                        
+                        <button onclick="window.changeVRView('entrance')" id="btn-entrance" class="nav-node absolute top-[70%] left-[70%] -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-surface-400 border-2 border-surface-200 hover:bg-brand-400 hover:border-white z-20 group transition-all cursor-pointer">
+                            <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 hidden group-hover:block bg-black text-white text-[10px] px-1.5 py-0.5 rounded whitespace-nowrap">South Entrance</span>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="absolute inset-0 pointer-events-none shadow-[inset_0_0_100px_rgba(0,0,0,0.8)] z-0"></div>
                 
                 <!-- Three.js Canvas mounts here -->
@@ -240,6 +290,51 @@
 
     <!-- Three.js 360 Viewer Logic -->
     <script>
+        function toggleFullscreen() {
+            const wrapper = document.getElementById("viewer-wrapper");
+            
+            // 1. If currently in pseudo-fullscreen, exit it
+            if (wrapper.classList.contains('pseudo-fullscreen')) {
+                wrapper.classList.remove('pseudo-fullscreen');
+                // Trigger resize event for Three.js canvas to adjust
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+                return;
+            }
+
+            // 2. If currently in native fullscreen, exit it
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.webkitExitFullscreen) { /* Safari */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE11 */
+                    document.msExitFullscreen();
+                }
+                return;
+            }
+
+            // 3. Attempt native fullscreen
+            if (wrapper.requestFullscreen) {
+                const promise = wrapper.requestFullscreen();
+                // If it returns a promise, we can catch permission errors
+                if (promise !== undefined) {
+                    promise.catch(err => {
+                        console.warn("Native fullscreen blocked by permissions, using CSS fallback.", err);
+                        wrapper.classList.add('pseudo-fullscreen');
+                        setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+                    });
+                }
+            } else if (wrapper.webkitRequestFullscreen) { /* Safari */
+                wrapper.webkitRequestFullscreen();
+            } else if (wrapper.msRequestFullscreen) { /* IE11 */
+                wrapper.msRequestFullscreen();
+            } else {
+                // If browser has no native support at all, use fallback
+                wrapper.classList.add('pseudo-fullscreen');
+                setTimeout(() => window.dispatchEvent(new Event('resize')), 50);
+            }
+        }
+
         window.onload = function() {
             init360Viewer();
         };
@@ -270,63 +365,127 @@
             canvas.width = 2048;
             canvas.height = 1024;
             const context = canvas.getContext('2d');
-
-            // 1. Draw Background Gradient
-            const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
-            gradient.addColorStop(0, '#020617'); // Dark slate ceiling
-            gradient.addColorStop(0.5, '#1e293b'); // Horizon
-            gradient.addColorStop(1, '#0f172a'); // Floor
-            context.fillStyle = gradient;
-            context.fillRect(0, 0, canvas.width, canvas.height);
-
-            // 2. Draw Architectural Grid Lines to simulate depth
-            context.strokeStyle = 'rgba(249, 115, 22, 0.2)'; // Faint orange grid
-            context.lineWidth = 2;
-            const gridSize = 64;
-            for(let i=0; i<=canvas.width; i+=gridSize) {
-                context.beginPath(); context.moveTo(i, 0); context.lineTo(i, canvas.height); context.stroke();
-            }
-            for(let i=0; i<=canvas.height; i+=gridSize) {
-                context.beginPath(); context.moveTo(0, i); context.lineTo(canvas.width, i); context.stroke();
-            }
-
-            // 3. Draw Horizon Line
-            context.strokeStyle = 'rgba(255,255,255,0.3)';
-            context.lineWidth = 4;
-            context.beginPath(); context.moveTo(0, canvas.height/2); context.lineTo(canvas.width, canvas.height/2); context.stroke();
-
-            // 4. Draw Text elements mimicking hotspots and locations
-            context.textAlign = 'center';
-            context.textBaseline = 'middle';
-            
-            // Main front title
-            context.fillStyle = '#f97316';
-            context.font = 'bold 90px Inter, sans-serif';
-            context.fillText('POORNA MARKET', canvas.width/2, canvas.height/2 - 80);
-            
-            context.fillStyle = '#ffffff';
-            context.font = '40px Inter, sans-serif';
-            context.fillText('Main Atrium Virtual View', canvas.width/2, canvas.height/2 + 20);
-            
-            // Draw a mock hotspot
-            context.fillStyle = 'rgba(249, 115, 22, 0.8)';
-            context.beginPath();
-            context.arc(canvas.width/2, canvas.height/2 + 150, 20, 0, Math.PI * 2);
-            context.fill();
-            context.strokeStyle = '#ffffff';
-            context.lineWidth = 5;
-            context.stroke();
-
-            // Left text (Gallery)
-            context.fillStyle = 'rgba(255,255,255,0.5)';
-            context.font = 'bold 60px Inter, sans-serif';
-            context.fillText('< DESIGN GALLERY', canvas.width/4, canvas.height/2);
-
-            // Right text (Walkthrough)
-            context.fillText('MARKET ALLEY >', canvas.width * 0.75, canvas.height/2);
-
-            // Create Texture from Canvas
             const texture = new THREE.CanvasTexture(canvas);
+
+            // Data for different views in the market
+            const viewData = {
+                atrium: {
+                    title: "MAIN ATRIUM",
+                    subtitle: "Central Gathering Space",
+                    desc: "The central gathering space of Poorna Market, featuring natural ventilation and dynamic commercial stalls.",
+                    color: "#f97316", // orange
+                    bgColorStart: "#020617",
+                    bgColorMid: "#1e293b",
+                    bgColorEnd: "#0f172a"
+                },
+                alley: {
+                    title: "MARKET ALLEY",
+                    subtitle: "Pedestrian Walkway",
+                    desc: "A bustling pedestrian corridor connecting the east and west wings, lined with local vendors.",
+                    color: "#10b981", // emerald
+                    bgColorStart: "#064e3b", 
+                    bgColorMid: "#0f766e",
+                    bgColorEnd: "#022c22"
+                },
+                entrance: {
+                    title: "SOUTH ENTRANCE",
+                    subtitle: "Main Access Point",
+                    desc: "The primary gateway into the market complex, showcasing the modernized facade and entryway.",
+                    color: "#3b82f6", // blue
+                    bgColorStart: "#1e3a8a",
+                    bgColorMid: "#3730a3",
+                    bgColorEnd: "#0f172a"
+                }
+            };
+
+            function drawTexture(viewId) {
+                const data = viewData[viewId];
+                
+                // 1. Draw Background Gradient
+                const gradient = context.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, data.bgColorStart); 
+                gradient.addColorStop(0.5, data.bgColorMid); 
+                gradient.addColorStop(1, data.bgColorEnd); 
+                context.fillStyle = gradient;
+                context.fillRect(0, 0, canvas.width, canvas.height);
+
+                // 2. Draw Architectural Grid Lines to simulate depth
+                context.strokeStyle = `rgba(255, 255, 255, 0.1)`; 
+                context.lineWidth = 2;
+                const gridSize = 64;
+                for(let i=0; i<=canvas.width; i+=gridSize) {
+                    context.beginPath(); context.moveTo(i, 0); context.lineTo(i, canvas.height); context.stroke();
+                }
+                for(let i=0; i<=canvas.height; i+=gridSize) {
+                    context.beginPath(); context.moveTo(0, i); context.lineTo(canvas.width, i); context.stroke();
+                }
+
+                // 3. Draw Horizon Line
+                context.strokeStyle = 'rgba(255,255,255,0.3)';
+                context.lineWidth = 4;
+                context.beginPath(); context.moveTo(0, canvas.height/2); context.lineTo(canvas.width, canvas.height/2); context.stroke();
+
+                // 4. Draw Text elements mimicking hotspots and locations
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                
+                // Main front title
+                context.fillStyle = data.color;
+                context.font = 'bold 90px Inter, sans-serif';
+                context.fillText(data.title, canvas.width/2, canvas.height/2 - 80);
+                
+                context.fillStyle = '#ffffff';
+                context.font = '40px Inter, sans-serif';
+                context.fillText(data.subtitle + ' - Virtual View', canvas.width/2, canvas.height/2 + 20);
+                
+                // Draw a mock hotspot
+                context.fillStyle = data.color;
+                context.globalAlpha = 0.8;
+                context.beginPath();
+                context.arc(canvas.width/2, canvas.height/2 + 150, 20, 0, Math.PI * 2);
+                context.fill();
+                context.globalAlpha = 1.0;
+                context.strokeStyle = '#ffffff';
+                context.lineWidth = 5;
+                context.stroke();
+
+                // Left text
+                context.fillStyle = 'rgba(255,255,255,0.5)';
+                context.font = 'bold 60px Inter, sans-serif';
+                context.fillText('< TURN AROUND', canvas.width/4, canvas.height/2);
+
+                // Right text
+                context.fillText('EXPLORE MORE >', canvas.width * 0.75, canvas.height/2);
+
+                // Tell Three.js the canvas changed
+                texture.needsUpdate = true;
+            }
+
+            // Draw initial view
+            drawTexture('atrium');
+
+            // Expose function to window so it can be called from HTML onclick
+            window.changeVRView = function(viewId) {
+                // Update 360 Texture
+                drawTexture(viewId);
+                
+                // Update Info Panel
+                document.getElementById('info-title').innerText = viewData[viewId].title;
+                document.getElementById('info-desc').innerText = viewData[viewId].desc;
+                
+                // Reset all map nodes to inactive state
+                document.querySelectorAll('.nav-node').forEach(node => {
+                    node.classList.remove('w-4', 'h-4', 'bg-brand-500', 'shadow-[0_0_10px_rgba(249,115,22,0.8)]');
+                    node.classList.add('w-3', 'h-3', 'bg-surface-400', 'border-surface-200');
+                });
+                
+                // Set clicked map node to active state
+                const activeNode = document.getElementById('btn-' + viewId);
+                if(activeNode) {
+                    activeNode.classList.remove('w-3', 'h-3', 'bg-surface-400', 'border-surface-200');
+                    activeNode.classList.add('w-4', 'h-4', 'bg-brand-500', 'border-white', 'shadow-[0_0_10px_rgba(249,115,22,0.8)]');
+                }
+            };
             
             // Sphere Geometry (inverted so we are inside it)
             const geometry = new THREE.SphereGeometry(500, 60, 40);
